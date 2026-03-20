@@ -76,11 +76,11 @@ export default async function MethodistSettingsPage({
             </select>
           </label>
           <label className="grid gap-2 text-sm text-slate-200">
-            <span>SOR count</span>
+            <span>SAU count</span>
             <input className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3" defaultValue="2" min="0" name="sorCount" type="number" />
           </label>
           <label className="grid gap-2 text-sm text-slate-200">
-            <span>SOCH count</span>
+            <span>SAT count</span>
             <input className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3" defaultValue="1" min="0" name="sochCount" type="number" />
           </label>
           <div className="md:col-span-4">
@@ -97,7 +97,7 @@ export default async function MethodistSettingsPage({
                 Q{setting.quarter} • {setting.class.name} • {setting.subject.name}
               </h2>
               <p className="text-sm text-slate-400">
-                SOR: {setting.sorCount} • SOCH: {setting.sochCount}
+                SAU: {setting.sorCount} • SAT: {setting.sochCount}
               </p>
             </div>
 
@@ -107,7 +107,7 @@ export default async function MethodistSettingsPage({
               <input type="hidden" name="classId" value={setting.classId} />
               <input type="hidden" name="subjectId" value={setting.subjectId} />
               <label className="grid gap-2 text-sm text-slate-200">
-                <span>SOR count</span>
+                <span>SAU count</span>
                 <input
                   className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3"
                   defaultValue={setting.sorCount}
@@ -117,7 +117,7 @@ export default async function MethodistSettingsPage({
                 />
               </label>
               <label className="grid gap-2 text-sm text-slate-200">
-                <span>SOCH count</span>
+                <span>SAT count</span>
                 <input
                   className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3"
                   defaultValue={setting.sochCount}
@@ -137,11 +137,11 @@ export default async function MethodistSettingsPage({
               <input type="hidden" name="classId" value={setting.classId} />
               <input type="hidden" name="subjectId" value={setting.subjectId} />
               <label className="grid gap-2 text-sm text-slate-200">
-                <span>SOR max score</span>
+                <span>SAU max score</span>
                 <input className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3" defaultValue="20" min="1" name="sorMaxScore" type="number" step="0.01" />
               </label>
               <label className="grid gap-2 text-sm text-slate-200">
-                <span>SOCH max score</span>
+                <span>SAT max score</span>
                 <input className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3" defaultValue="40" min="1" name="sochMaxScore" type="number" step="0.01" />
               </label>
               <div className="md:col-span-2 flex flex-wrap gap-3 self-end">

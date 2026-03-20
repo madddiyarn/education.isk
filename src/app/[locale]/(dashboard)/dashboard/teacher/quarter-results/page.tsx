@@ -5,6 +5,7 @@ import { SubmitButton } from "@/components/ui/SubmitButton";
 import { requireDatabaseUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { buildJournalRows } from "@/lib/journal";
+import { getAssessmentTypeLabel } from "@/lib/presentation";
 import { formatPercentage } from "@/lib/utils";
 
 function sortAssessments<T extends { type: "SOR" | "SOCH"; number: number }>(items: T[]) {
@@ -116,7 +117,7 @@ export default async function TeacherQuarterResultsPage({
             {selectedAssignment.class.name} • {selectedAssignment.subject.name} • Quarter {quarter}
           </h2>
           <p className="mt-2 text-sm text-slate-400">
-            Final percentage = average SOR percentages × 0.5 + average SOCH percentages × 0.5.
+            Final percentage = average SAU percentages × 0.5 + average SAT percentages × 0.5.
           </p>
         </div>
         <div className="overflow-x-auto">
@@ -126,7 +127,7 @@ export default async function TeacherQuarterResultsPage({
                 <th className="px-4 py-3 font-semibold uppercase tracking-[0.18em] text-slate-400">Student</th>
                 {orderedAssessments.map((assessment) => (
                   <th key={assessment.id} className="px-4 py-3 font-semibold uppercase tracking-[0.18em] text-slate-400">
-                    {assessment.type} {assessment.number}
+                    {getAssessmentTypeLabel(assessment.type)} {assessment.number}
                   </th>
                 ))}
                 <th className="px-4 py-3 font-semibold uppercase tracking-[0.18em] text-slate-400">Final %</th>

@@ -7,10 +7,25 @@ import { redirect } from "next/navigation";
 import { requireDatabaseUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { calculatePercentage } from "@/lib/grades";
+import { stripSearchParams } from "@/lib/presentation";
 import { buildStatusUrl } from "@/lib/utils";
 
 function getRedirectTo(formData: FormData, fallback: string) {
   return String(formData.get("redirectTo") || fallback);
+}
+
+function revalidateTeacherPaths(redirectTo: string) {
+  const basePath = stripSearchParams(redirectTo);
+  const localeMatch = basePath.match(/^\/(en|ru)\//);
+  const locale = localeMatch?.[1] || "en";
+
+  revalidatePath(basePath);
+  revalidatePath(`/${locale}/dashboard/teacher`);
+  revalidatePath(`/${locale}/dashboard/student`);
+
+  if (basePath.includes("/journals")) {
+    revalidatePath(basePath.replace("/journals", "/quarter-results"));
+  }
 }
 
 export async function saveJournalGradesAction(formData: FormData) {
@@ -110,8 +125,6 @@ export async function saveJournalGradesAction(formData: FormData) {
   }
 
   await prisma.$transaction(operations);
-  revalidatePath("/en/dashboard/teacher/journals");
-  revalidatePath("/en/dashboard/teacher/quarter-results");
-  revalidatePath("/en/dashboard/student");
+  revalidateTeacherPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: "Grades saved." }));
 }

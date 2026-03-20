@@ -7,10 +7,20 @@ import { redirect } from "next/navigation";
 import { requireDatabaseUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
+import { stripSearchParams } from "@/lib/presentation";
 import { buildStatusUrl } from "@/lib/utils";
 
 function getRedirectTo(formData: FormData, fallback: string) {
   return String(formData.get("redirectTo") || fallback);
+}
+
+function revalidateDashboardPaths(redirectTo: string) {
+  const basePath = stripSearchParams(redirectTo);
+  const localeMatch = basePath.match(/^\/(en|ru)\//);
+  const locale = localeMatch?.[1] || "en";
+
+  revalidatePath(basePath);
+  revalidatePath(`/${locale}/dashboard`);
 }
 
 function normalizeRole(value: string) {
@@ -94,7 +104,7 @@ export async function upsertUserAction(formData: FormData) {
     throw error;
   }
 
-  revalidatePath("/en/dashboard");
+  revalidateDashboardPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: `Saved by ${currentUser.fullName}.` }));
 }
 
@@ -112,7 +122,7 @@ export async function deleteUserAction(formData: FormData) {
   }
 
   await prisma.user.delete({ where: { id: userId } });
-  revalidatePath("/en/dashboard");
+  revalidateDashboardPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: "User deleted." }));
 }
 
@@ -132,7 +142,7 @@ export async function upsertClassAction(formData: FormData) {
     await prisma.class.create({ data: { name } });
   }
 
-  revalidatePath("/en/dashboard/moderator/classes");
+  revalidateDashboardPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: "Class saved." }));
 }
 
@@ -146,7 +156,7 @@ export async function deleteClassAction(formData: FormData) {
   }
 
   await prisma.class.delete({ where: { id: classId } });
-  revalidatePath("/en/dashboard/moderator/classes");
+  revalidateDashboardPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: "Class deleted." }));
 }
 
@@ -166,7 +176,7 @@ export async function upsertSubjectAction(formData: FormData) {
     await prisma.subject.create({ data: { name } });
   }
 
-  revalidatePath("/en/dashboard/moderator/subjects");
+  revalidateDashboardPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: "Subject saved." }));
 }
 
@@ -180,7 +190,7 @@ export async function deleteSubjectAction(formData: FormData) {
   }
 
   await prisma.subject.delete({ where: { id: subjectId } });
-  revalidatePath("/en/dashboard/moderator/subjects");
+  revalidateDashboardPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: "Subject deleted." }));
 }
 
@@ -207,7 +217,7 @@ export async function upsertTeacherAssignmentAction(formData: FormData) {
     });
   }
 
-  revalidatePath("/en/dashboard/moderator/teacher-assignments");
+  revalidateDashboardPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: "Teacher assignment saved." }));
 }
 
@@ -221,7 +231,7 @@ export async function deleteTeacherAssignmentAction(formData: FormData) {
   }
 
   await prisma.teacherAssignment.delete({ where: { id: assignmentId } });
-  revalidatePath("/en/dashboard/moderator/teacher-assignments");
+  revalidateDashboardPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: "Teacher assignment deleted." }));
 }
 
@@ -247,6 +257,6 @@ export async function assignStudentToClassAction(formData: FormData) {
     create: { userId, classId },
   });
 
-  revalidatePath("/en/dashboard/moderator/student-assignments");
+  revalidateDashboardPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: "Student assigned to class." }));
 }

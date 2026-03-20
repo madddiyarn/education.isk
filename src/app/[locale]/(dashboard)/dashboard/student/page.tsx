@@ -5,6 +5,7 @@ import { Panel } from "@/components/ui/Panel";
 import { requireDatabaseUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { buildQuarterSummary } from "@/lib/grades";
+import { getAssessmentTypeLabel } from "@/lib/presentation";
 import { formatPercentage } from "@/lib/utils";
 
 type SubjectQuarterGroup = {
@@ -129,7 +130,7 @@ export default async function StudentDashboardPage() {
                 {group.items.map((item) => (
                   <tr key={`${item.type}-${item.number}`}>
                     <td className="px-4 py-3 text-slate-100">
-                      {item.type} {item.number}
+                      {getAssessmentTypeLabel(item.type)} {item.number}
                     </td>
                     <td className="px-4 py-3 text-slate-300">
                       {item.score} / {item.maxScore}

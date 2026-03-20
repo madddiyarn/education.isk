@@ -7,6 +7,7 @@ import { saveJournalGradesAction } from "@/features/teacher/actions";
 import { requireDatabaseUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { buildJournalRows } from "@/lib/journal";
+import { getAssessmentTypeLabel } from "@/lib/presentation";
 import { formatPercentage } from "@/lib/utils";
 
 function sortAssessments<T extends { type: "SOR" | "SOCH"; number: number }>(items: T[]) {
@@ -129,7 +130,7 @@ export default async function TeacherJournalsPage({
         <Panel>
           <h2 className="text-xl font-semibold text-white">No assessments generated</h2>
           <p className="mt-2 text-sm text-slate-400">
-            A methodist must configure SOR and SOCH settings and generate assessment rows for this class, subject, and
+            A methodist must configure SAU and SAT settings and generate assessment rows for this class, subject, and
             quarter.
           </p>
         </Panel>
@@ -155,7 +156,7 @@ export default async function TeacherJournalsPage({
                     <th className="px-4 py-3 font-semibold uppercase tracking-[0.18em] text-slate-400">Student</th>
                     {orderedAssessments.map((assessment) => (
                       <th key={assessment.id} className="px-4 py-3 font-semibold uppercase tracking-[0.18em] text-slate-400">
-                        {assessment.type} {assessment.number}
+                        {getAssessmentTypeLabel(assessment.type)} {assessment.number}
                         <div className="text-[11px] font-normal text-slate-500">Max {assessment.maxScore}</div>
                       </th>
                     ))}

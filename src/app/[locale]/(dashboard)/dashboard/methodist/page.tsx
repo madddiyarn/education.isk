@@ -19,14 +19,14 @@ export default async function MethodistOverviewPage() {
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard title="Settings" value={settingsCount} caption="Quarter configurations" />
-        <StatCard title="Assessments" value={assessmentsCount} caption="Generated SOR and SOCH records" />
+        <StatCard title="Assessments" value={assessmentsCount} caption="Generated SAU and SAT records" />
         <StatCard title="Classes" value={classesCount} caption="Available class scope" />
         <StatCard title="Subjects" value={subjectsCount} caption="Subjects in the journal" />
       </div>
       <Panel>
         <h2 className="text-xl font-semibold text-white">Assessment structure moderation</h2>
         <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-400">
-          Configure how many SOR and SOCH assessments exist for each quarter, class, and subject, then generate the
+          Configure how many SAU and SAT assessments exist for each quarter, class, and subject, then generate the
           exact assessment rows teachers will use inside the journal.
         </p>
       </Panel>

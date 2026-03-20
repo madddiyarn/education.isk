@@ -3,6 +3,7 @@ import { Role } from "@prisma/client";
 import { Panel } from "@/components/ui/Panel";
 import { requireDatabaseUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getAssessmentTypeLabel } from "@/lib/presentation";
 import { formatPercentage } from "@/lib/utils";
 
 export default async function ModeratorGradesPage() {
@@ -48,7 +49,7 @@ export default async function ModeratorGradesPage() {
                 <td className="px-4 py-3 text-slate-300">{grade.assessment.subject.name}</td>
                 <td className="px-4 py-3 text-slate-300">{grade.assessment.quarter}</td>
                 <td className="px-4 py-3 text-slate-300">
-                  {grade.assessment.type} {grade.assessment.number}
+                  {getAssessmentTypeLabel(grade.assessment.type)} {grade.assessment.number}
                 </td>
                 <td className="px-4 py-3 text-slate-300">
                   {grade.score} / {grade.assessment.maxScore}

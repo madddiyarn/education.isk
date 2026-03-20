@@ -6,10 +6,20 @@ import { redirect } from "next/navigation";
 
 import { requireDatabaseUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { stripSearchParams } from "@/lib/presentation";
 import { buildStatusUrl } from "@/lib/utils";
 
 function getRedirectTo(formData: FormData, fallback: string) {
   return String(formData.get("redirectTo") || fallback);
+}
+
+function revalidateMethodistPaths(redirectTo: string) {
+  const basePath = stripSearchParams(redirectTo);
+  const localeMatch = basePath.match(/^\/(en|ru)\//);
+  const locale = localeMatch?.[1] || "en";
+
+  revalidatePath(basePath);
+  revalidatePath(`/${locale}/dashboard/methodist`);
 }
 
 function parseNumber(value: FormDataEntryValue | null) {
@@ -54,7 +64,7 @@ export async function upsertAssessmentSettingAction(formData: FormData) {
     },
   });
 
-  revalidatePath("/en/dashboard/methodist/settings");
+  revalidateMethodistPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: "Assessment setting saved." }));
 }
 
@@ -68,7 +78,7 @@ export async function deleteAssessmentSettingAction(formData: FormData) {
   }
 
   await prisma.assessmentSetting.delete({ where: { id: settingId } });
-  revalidatePath("/en/dashboard/methodist/settings");
+  revalidateMethodistPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: "Assessment setting deleted." }));
 }
 
@@ -157,6 +167,6 @@ export async function generateAssessmentsAction(formData: FormData) {
     }),
   ]);
 
-  revalidatePath("/en/dashboard/methodist/settings");
+  revalidateMethodistPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: "Assessments generated from the current setting." }));
 }

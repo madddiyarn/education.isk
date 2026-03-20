@@ -7,6 +7,8 @@ import { SubmitButton } from "@/components/ui/SubmitButton";
 import { deleteUserAction, upsertUserAction } from "@/features/moderator/actions";
 import { requireDatabaseUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { normalizeLocale } from "@/lib/locale";
+import { getRoleLabel } from "@/lib/presentation";
 
 const roleOptions = Object.values(Role);
 
@@ -17,7 +19,8 @@ export default async function ModeratorUsersPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ success?: string; error?: string }>;
 }) {
-  const { locale } = await params;
+  const { locale: rawLocale } = await params;
+  const locale = normalizeLocale(rawLocale);
   const feedback = await searchParams;
   await requireDatabaseUser([Role.MODERATOR]);
   const redirectTo = `/${locale}/dashboard/moderator/users`;
@@ -60,9 +63,9 @@ export default async function ModeratorUsersPage({
             <span>Role</span>
             <select className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3" name="role" defaultValue={Role.STUDENT}>
               {roleOptions.map((role) => (
-                <option key={role} value={role}>
-                  {role}
-                </option>
+              <option key={role} value={role}>
+                  {getRoleLabel(role, locale)}
+              </option>
               ))}
             </select>
           </label>
@@ -90,7 +93,7 @@ export default async function ModeratorUsersPage({
               <div>
                 <h2 className="text-lg font-semibold text-white">{user.fullName}</h2>
                 <p className="text-sm text-slate-400">
-                  {user.login} • {user.role}
+                  {user.login} • {getRoleLabel(user.role, locale)}
                   {user.studentProfile?.class ? ` • ${user.studentProfile.class.name}` : ""}
                 </p>
               </div>
@@ -135,7 +138,7 @@ export default async function ModeratorUsersPage({
                 >
                   {roleOptions.map((role) => (
                     <option key={role} value={role}>
-                      {role}
+                      {getRoleLabel(role, locale)}
                     </option>
                   ))}
                 </select>

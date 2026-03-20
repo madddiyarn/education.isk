@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Role } from "@prisma/client";
 
 import { getDictionary } from "@/lib/dictionaries";
+import { getRoleLabel } from "@/lib/presentation";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/types";
 
@@ -59,14 +60,7 @@ export function Sidebar({
   const currentPath = usePathname();
   const dictionary = getDictionary(locale);
   const items = buildNavItems(locale, role);
-  const roleLabel =
-    role === Role.MODERATOR
-      ? dictionary.moderator
-      : role === Role.METHODIST
-        ? dictionary.methodist
-        : role === Role.TEACHER
-          ? dictionary.teacherRole
-          : dictionary.studentRole;
+  const roleLabel = getRoleLabel(role, locale);
 
   return (
     <aside className="flex h-full flex-col rounded-[32px] border border-white/10 bg-slate-950/60 p-5 backdrop-blur">
