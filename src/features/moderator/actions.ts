@@ -36,9 +36,14 @@ export async function upsertUserAction(formData: FormData) {
   const password = String(formData.get("password") || "").trim();
   const role = normalizeRole(String(formData.get("role") || ""));
   const classId = String(formData.get("classId") || "").trim();
+  const teacherSubjectId = String(formData.get("teacherSubjectId") || "").trim();
 
   if (!fullName || !login || !role) {
     redirect(buildStatusUrl(redirectTo, { error: "Full name, login, and role are required." }));
+  }
+
+  if (role === Role.TEACHER && !teacherSubjectId) {
+    redirect(buildStatusUrl(redirectTo, { error: "Teacher specialization subject is required for teacher accounts." }));
   }
 
   try {
@@ -66,11 +71,20 @@ export async function upsertUserAction(formData: FormData) {
         });
       }
 
+      if (role === Role.TEACHER) {
+        await prisma.teacherProfile.upsert({
+          where: { userId },
+          update: { subjectId: teacherSubjectId },
+          create: { userId, subjectId: teacherSubjectId },
+        });
+      }
+
       if (role !== Role.STUDENT) {
         await prisma.studentProfile.deleteMany({ where: { userId } });
       }
 
       if (role !== Role.TEACHER) {
+        await prisma.teacherProfile.deleteMany({ where: { userId } });
         await prisma.teacherAssignment.deleteMany({ where: { teacherId: userId } });
       }
     } else {
@@ -92,6 +106,15 @@ export async function upsertUserAction(formData: FormData) {
           data: {
             userId: createdUser.id,
             classId,
+          },
+        });
+      }
+
+      if (role === Role.TEACHER) {
+        await prisma.teacherProfile.create({
+          data: {
+            userId: createdUser.id,
+            subjectId: teacherSubjectId,
           },
         });
       }
@@ -201,9 +224,13 @@ export async function upsertTeacherAssignmentAction(formData: FormData) {
   const teacherId = String(formData.get("teacherId") || "").trim();
   const subjectId = String(formData.get("subjectId") || "").trim();
   const classId = String(formData.get("classId") || "").trim();
+  const classIds = formData
+    .getAll("classIds")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
 
-  if (!teacherId || !subjectId || !classId) {
-    redirect(buildStatusUrl(redirectTo, { error: "Teacher, subject, and class are required." }));
+  if (!teacherId || !subjectId || (!classId && classIds.length === 0)) {
+    redirect(buildStatusUrl(redirectTo, { error: "Teacher, subject, and at least one class are required." }));
   }
 
   if (assignmentId) {
@@ -212,9 +239,21 @@ export async function upsertTeacherAssignmentAction(formData: FormData) {
       data: { teacherId, subjectId, classId },
     });
   } else {
-    await prisma.teacherAssignment.create({
-      data: { teacherId, subjectId, classId },
-    });
+    await prisma.$transaction(
+      (classIds.length ? classIds : [classId]).map((selectedClassId) =>
+        prisma.teacherAssignment.upsert({
+          where: {
+            teacherId_subjectId_classId: {
+              teacherId,
+              subjectId,
+              classId: selectedClassId,
+            },
+          },
+          update: {},
+          create: { teacherId, subjectId, classId: selectedClassId },
+        }),
+      ),
+    );
   }
 
   revalidateDashboardPaths(redirectTo);

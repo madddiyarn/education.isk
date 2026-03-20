@@ -25,7 +25,7 @@ export default async function ModeratorUsersPage({
   await requireDatabaseUser([Role.MODERATOR]);
   const redirectTo = `/${locale}/dashboard/moderator/users`;
 
-  const [users, classes] = await Promise.all([
+  const [users, classes, subjects] = await Promise.all([
     prisma.user.findMany({
       orderBy: { createdAt: "desc" },
       include: {
@@ -34,9 +34,15 @@ export default async function ModeratorUsersPage({
             class: true,
           },
         },
+        teacherProfile: {
+          include: {
+            subject: true,
+          },
+        },
       },
     }),
     prisma.class.findMany({ orderBy: { name: "asc" } }),
+    prisma.subject.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   return (
@@ -80,6 +86,17 @@ export default async function ModeratorUsersPage({
               ))}
             </select>
           </label>
+          <label className="grid gap-2 text-sm text-slate-200 md:col-span-2">
+            <span>Teacher specialization subject (for teacher role)</span>
+            <select className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3" name="teacherSubjectId" defaultValue="">
+              <option value="">No specialization</option>
+              {subjects.map((subject) => (
+                <option key={subject.id} value={subject.id}>
+                  {locale === "ru" ? `Учитель ${subject.name}` : `${subject.name} teacher`}
+                </option>
+              ))}
+            </select>
+          </label>
           <div className="md:col-span-2">
             <SubmitButton label="Save user" pendingLabel="Saving..." />
           </div>
@@ -95,6 +112,9 @@ export default async function ModeratorUsersPage({
                 <p className="text-sm text-slate-400">
                   {user.login} • {getRoleLabel(user.role, locale)}
                   {user.studentProfile?.class ? ` • ${user.studentProfile.class.name}` : ""}
+                  {user.teacherProfile?.subject
+                    ? ` • ${locale === "ru" ? `Учитель ${user.teacherProfile.subject.name}` : `${user.teacherProfile.subject.name} teacher`}`
+                    : ""}
                 </p>
               </div>
               <form action={deleteUserAction}>
@@ -139,6 +159,21 @@ export default async function ModeratorUsersPage({
                   {roleOptions.map((role) => (
                     <option key={role} value={role}>
                       {getRoleLabel(role, locale)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-2 text-sm text-slate-200 md:col-span-2">
+                <span>Teacher specialization subject</span>
+                <select
+                  className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3"
+                  name="teacherSubjectId"
+                  defaultValue={user.teacherProfile?.subjectId || ""}
+                >
+                  <option value="">No specialization</option>
+                  {subjects.map((subject) => (
+                    <option key={subject.id} value={subject.id}>
+                      {locale === "ru" ? `Учитель ${subject.name}` : `${subject.name} teacher`}
                     </option>
                   ))}
                 </select>

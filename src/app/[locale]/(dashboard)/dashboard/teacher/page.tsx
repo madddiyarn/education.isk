@@ -7,13 +7,21 @@ import { prisma } from "@/lib/db";
 
 export default async function TeacherOverviewPage() {
   const teacher = await requireDatabaseUser([Role.TEACHER]);
-  const assignments = await prisma.teacherAssignment.findMany({
-    where: { teacherId: teacher.id },
-    include: {
-      subject: true,
-      class: true,
-    },
-  });
+  const [assignments, teacherProfile] = await Promise.all([
+    prisma.teacherAssignment.findMany({
+      where: { teacherId: teacher.id },
+      include: {
+        subject: true,
+        class: true,
+      },
+    }),
+    prisma.teacherProfile.findUnique({
+      where: { userId: teacher.id },
+      include: {
+        subject: true,
+      },
+    }),
+  ]);
 
   const uniqueClasses = new Set(assignments.map((assignment) => assignment.classId)).size;
   const uniqueSubjects = new Set(assignments.map((assignment) => assignment.subjectId)).size;
@@ -26,6 +34,9 @@ export default async function TeacherOverviewPage() {
         <StatCard title="Subjects" value={uniqueSubjects} caption="Editable journal scope" />
       </div>
       <Panel>
+        <p className="text-sm uppercase tracking-[0.24em] text-slate-400">
+          {teacherProfile?.subject ? `${teacherProfile.subject.name} teacher` : "Teacher"}
+        </p>
         <h2 className="text-xl font-semibold text-white">My classes</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {assignments.map((assignment) => (

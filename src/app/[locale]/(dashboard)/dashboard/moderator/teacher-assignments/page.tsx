@@ -21,7 +21,17 @@ export default async function ModeratorTeacherAssignmentsPage({
   const redirectTo = `/${locale}/dashboard/moderator/teacher-assignments`;
 
   const [teachers, subjects, classes, assignments] = await Promise.all([
-    prisma.user.findMany({ where: { role: Role.TEACHER }, orderBy: { fullName: "asc" } }),
+    prisma.user.findMany({
+      where: { role: Role.TEACHER },
+      orderBy: { fullName: "asc" },
+      include: {
+        teacherProfile: {
+          include: {
+            subject: true,
+          },
+        },
+      },
+    }),
     prisma.subject.findMany({ orderBy: { name: "asc" } }),
     prisma.class.findMany({ orderBy: { name: "asc" } }),
     prisma.teacherAssignment.findMany({
@@ -48,6 +58,7 @@ export default async function ModeratorTeacherAssignmentsPage({
               {teachers.map((teacher) => (
                 <option key={teacher.id} value={teacher.id}>
                   {teacher.fullName}
+                  {teacher.teacherProfile?.subject ? ` • ${teacher.teacherProfile.subject.name}` : ""}
                 </option>
               ))}
             </select>
@@ -65,17 +76,17 @@ export default async function ModeratorTeacherAssignmentsPage({
           </label>
           <label className="grid gap-2 text-sm text-slate-200">
             <span>Class</span>
-            <select className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3" name="classId" required>
-              <option value="">Select class</option>
+            <div className="max-h-64 space-y-2 overflow-y-auto rounded-2xl border border-white/10 bg-slate-950/50 p-3">
               {classes.map((schoolClass) => (
-                <option key={schoolClass.id} value={schoolClass.id}>
-                  {schoolClass.name}
-                </option>
+                <label key={schoolClass.id} className="flex items-center gap-3 text-sm text-slate-200">
+                  <input name="classIds" type="checkbox" value={schoolClass.id} />
+                  <span>{schoolClass.name}</span>
+                </label>
               ))}
-            </select>
+            </div>
           </label>
           <div className="md:col-span-3">
-            <SubmitButton label="Save assignment" pendingLabel="Saving..." />
+            <SubmitButton label="Assign to classes" pendingLabel="Saving..." />
           </div>
         </form>
       </DetailsDialog>
@@ -101,6 +112,7 @@ export default async function ModeratorTeacherAssignmentsPage({
                 {teachers.map((teacher) => (
                   <option key={teacher.id} value={teacher.id}>
                     {teacher.fullName}
+                    {teacher.teacherProfile?.subject ? ` • ${teacher.teacherProfile.subject.name}` : ""}
                   </option>
                 ))}
               </select>

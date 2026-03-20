@@ -29,6 +29,7 @@ model User {
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   studentProfile     StudentProfile?
+  teacherProfile     TeacherProfile?
   teacherAssignments TeacherAssignment[] @relation("TeacherAssignments")
 
   @@index([role])
@@ -46,9 +47,20 @@ model Class {
 model Subject {
   id                 String              @id @default(cuid())
   name               String              @unique
+  teacherProfiles    TeacherProfile[]
   teacherAssignments TeacherAssignment[]
   assessmentSettings AssessmentSetting[]
   assessments        Assessment[]
+}
+
+model TeacherProfile {
+  id        String  @id @default(cuid())
+  userId     String @unique
+  subjectId  String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+
+  @@index([subjectId])
 }
 
 model StudentProfile {
