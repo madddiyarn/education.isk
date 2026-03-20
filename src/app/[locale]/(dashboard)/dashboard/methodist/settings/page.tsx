@@ -10,6 +10,7 @@ import {
   upsertAssessmentSettingAction,
 } from "@/features/methodist/actions";
 import { requireDatabaseUser } from "@/lib/auth";
+import { METHODIST_CLASS_GROUPS } from "@/lib/constants";
 import { prisma } from "@/lib/db";
 
 export default async function MethodistSettingsPage({
@@ -41,7 +42,11 @@ export default async function MethodistSettingsPage({
       <FeedbackMessage message={feedback.success} />
       <FeedbackMessage message={feedback.error} tone="error" />
       <DetailsDialog title="Create or update setting">
-        <form action={upsertAssessmentSettingAction} className="grid gap-4 md:grid-cols-4">
+        <p className="mb-4 text-sm text-slate-400">
+          Choose a single class or a whole parallel group like 7, 8, 9, 10, 11PhM10, or 11PhM7. The same quarter
+          setting will be applied to every matched class.
+        </p>
+        <form action={upsertAssessmentSettingAction} className="grid gap-4 md:grid-cols-5">
           <input type="hidden" name="redirectTo" value={redirectTo} />
           <label className="grid gap-2 text-sm text-slate-200">
             <span>Quarter</span>
@@ -54,8 +59,18 @@ export default async function MethodistSettingsPage({
             </select>
           </label>
           <label className="grid gap-2 text-sm text-slate-200">
+            <span>Parallel / scope</span>
+            <select className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3" name="classGroup" defaultValue="SINGLE">
+              {METHODIST_CLASS_GROUPS.map((group) => (
+                <option key={group.value} value={group.value}>
+                  {group.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-2 text-sm text-slate-200">
             <span>Class</span>
-            <select className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3" name="classId" required>
+            <select className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3" name="classId" defaultValue="">
               <option value="">Select class</option>
               {classes.map((schoolClass) => (
                 <option key={schoolClass.id} value={schoolClass.id}>
@@ -83,7 +98,7 @@ export default async function MethodistSettingsPage({
             <span>SAT count</span>
             <input className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3" defaultValue="1" min="0" name="sochCount" type="number" />
           </label>
-          <div className="md:col-span-4">
+          <div className="md:col-span-5">
             <SubmitButton label="Save setting" pendingLabel="Saving..." />
           </div>
         </form>

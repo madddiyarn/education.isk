@@ -74,3 +74,13 @@ export const DEFAULT_SUBJECTS = [
   "Kazakh Language",
   "Informatics",
 ] as const;
+
+export const METHODIST_CLASS_GROUPS = [
+  { value: "SINGLE", label: "Single class", prefixes: [] },
+  { value: "7", label: "7", prefixes: ['7"'] },
+  { value: "8", label: "8", prefixes: ['8"'] },
+  { value: "9", label: "9", prefixes: ['9"'] },
+  { value: "10", label: "10", prefixes: ['10"'] },
+  { value: "11PhM10", label: "11PhM10", prefixes: ["11PhM10-"] },
+  { value: "11PhM7", label: "11PhM7", prefixes: ["11PhM7-"] },
+] as const;

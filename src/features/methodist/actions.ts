@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireDatabaseUser } from "@/lib/auth";
+import { METHODIST_CLASS_GROUPS } from "@/lib/constants";
 import { prisma } from "@/lib/db";
 import { stripSearchParams } from "@/lib/presentation";
 import { buildStatusUrl } from "@/lib/utils";
@@ -26,43 +27,76 @@ function parseNumber(value: FormDataEntryValue | null) {
   return Number(String(value || "").trim());
 }
 
+async function resolveTargetClassIds(input: { classGroup: string; classId: string }) {
+  if (!input.classGroup || input.classGroup === "SINGLE") {
+    return input.classId ? [input.classId] : [];
+  }
+
+  const group = METHODIST_CLASS_GROUPS.find((item) => item.value === input.classGroup);
+
+  if (!group || group.value === "SINGLE") {
+    return [];
+  }
+
+  const classes = await prisma.class.findMany({
+    where: {
+      OR: group.prefixes.map((prefix) => ({
+        name: {
+          startsWith: prefix,
+        },
+      })),
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return classes.map((item) => item.id);
+}
+
 export async function upsertAssessmentSettingAction(formData: FormData) {
   await requireDatabaseUser([Role.METHODIST, Role.MODERATOR]);
   const redirectTo = getRedirectTo(formData, "/en/dashboard/methodist/settings");
   const quarter = parseNumber(formData.get("quarter"));
   const subjectId = String(formData.get("subjectId") || "").trim();
   const classId = String(formData.get("classId") || "").trim();
+  const classGroup = String(formData.get("classGroup") || "SINGLE").trim();
   const sorCount = parseNumber(formData.get("sorCount"));
   const sochCount = parseNumber(formData.get("sochCount"));
+  const targetClassIds = await resolveTargetClassIds({ classGroup, classId });
 
-  if (!subjectId || !classId || ![1, 2, 3, 4].includes(quarter)) {
-    redirect(buildStatusUrl(redirectTo, { error: "Quarter, subject, and class are required." }));
+  if (!subjectId || targetClassIds.length === 0 || ![1, 2, 3, 4].includes(quarter)) {
+    redirect(buildStatusUrl(redirectTo, { error: "Quarter, subject, and class or group are required." }));
   }
 
   if (sorCount < 0 || sochCount < 0) {
     redirect(buildStatusUrl(redirectTo, { error: "Assessment counts must be zero or greater." }));
   }
 
-  await prisma.assessmentSetting.upsert({
-    where: {
-      quarter_subjectId_classId: {
-        quarter,
-        subjectId,
-        classId,
-      },
-    },
-    update: {
-      sorCount,
-      sochCount,
-    },
-    create: {
-      quarter,
-      subjectId,
-      classId,
-      sorCount,
-      sochCount,
-    },
-  });
+  await prisma.$transaction(
+    targetClassIds.map((targetClassId) =>
+      prisma.assessmentSetting.upsert({
+        where: {
+          quarter_subjectId_classId: {
+            quarter,
+            subjectId,
+            classId: targetClassId,
+          },
+        },
+        update: {
+          sorCount,
+          sochCount,
+        },
+        create: {
+          quarter,
+          subjectId,
+          classId: targetClassId,
+          sorCount,
+          sochCount,
+        },
+      }),
+    ),
+  );
 
   revalidateMethodistPaths(redirectTo);
   redirect(buildStatusUrl(redirectTo, { success: "Assessment setting saved." }));
